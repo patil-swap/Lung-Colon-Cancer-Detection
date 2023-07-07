@@ -2,9 +2,6 @@ import numpy as np
 import os
 import time
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
@@ -14,7 +11,7 @@ from torchsummary import summary
 from torch.utils.data.sampler import SubsetRandomSampler
 from torch.autograd import Variable
 
-from utilities import utility_funcs, evaluate_all, predict_funcs, train_net
+from utilities import predict_funcs 
 from models import CNN1_LungColon, CNN2_LungClassifier, CNN3_ColonClassifier, CNN4_LungMalignant
 
 CNN1 = CNN1_LungColon.CNN1_LungColon()

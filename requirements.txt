@@ -1,0 +1,8 @@
+numpy
+torch
+matplotlib
+kaggle
+split-folders
+torchvision
+pillow
+torchsummary

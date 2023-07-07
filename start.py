@@ -29,6 +29,13 @@ CNN3 = predict_funcs.model_loader(CNN3, 'checkpoint_files\\model_CNN3_ColonClass
 CNN4 = CNN4_LungMalignant.CNN4_LungMalignant()
 CNN4 = predict_funcs.model_loader(CNN4, 'checkpoint_files\\model_CNN4_LungMalignant_bs64_lr0.0065_epoch12')
 
-img = 'dataset\\lung_colon_image_set\\colon_image_sets\\colon_n\\colonn27.jpeg'
+img0 = 'dataset\\demo\\1.jpeg'
+img1 = 'dataset\\demo\\2.jpeg'
+img2 = 'dataset\\demo\\3.jpeg'
+img3 = 'dataset\\demo\\4.jpeg'
+img4 = 'dataset\\demo\\5.jpeg'
 
-predict_funcs.classify_image(img, CNN1, CNN2, CNN3, CNN4)
+demo_imgs = [img0, img1, img2, img3, img4]
+
+for img in demo_imgs:
+	predict_funcs.classify_image(img, CNN1, CNN2, CNN3, CNN4)

@@ -47,7 +47,7 @@ def classify_image(img_path, CNN1, CNN2, CNN3, CNN4, use_cuda=False):
             res = "Colon: Benign"
         else:
             res = "Colon: Malignant"
-    print(res)
+    return res
 
 
 def image_loader(image_name, use_cuda=False):

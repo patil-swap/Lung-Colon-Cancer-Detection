@@ -32,7 +32,15 @@ img2 = 'dataset\\demo\\3.jpeg'
 img3 = 'dataset\\demo\\4.jpeg'
 img4 = 'dataset\\demo\\5.jpeg'
 
-demo_imgs = [img0, img1, img2, img3, img4]
+images = { 1: img0, 2: img1, 3: img2, 4: img3, 5: img4 }
 
-for img in demo_imgs:
-	predict_funcs.classify_image(img, CNN1, CNN2, CNN3, CNN4)
+option = int(input("Select one of the following options: \n \
+1. Demo Image 1 # Labeled as Lung - Malignant - SCC \n \
+2. Demo Image 2 # Labeled as Colon - Benign \n \
+3. Demo Image 3 # Labeled as Colon - Malignant \n \
+4. Demo Image 4 # Labeled as Lung - Benign \n \
+5. Demo Image 5 # Labeled as Lung - Malignant - ACA \n"))
+
+prediction = predict_funcs.classify_image(images[option], CNN1, CNN2, CNN3, CNN4)
+
+print("Predicted as % s" % prediction)

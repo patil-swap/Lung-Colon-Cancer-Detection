@@ -1,0 +1,3 @@
+.venv/
+dataset/lung_colon_image_set/
+__pycache__/

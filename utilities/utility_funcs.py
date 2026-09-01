@@ -1,109 +1,103 @@
-import numpy as np
 import os
-import time
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-import torchvision
-import torchvision.transforms as transforms
+
+import numpy as np
 import matplotlib.pyplot as plt
-from PIL import *
-from torchvision import datasets, models, transforms
-from torchsummary import summary
-from torch.utils.data.sampler import SubsetRandomSampler
-from torch.autograd import Variable
+import torch
 
 
 def get_model_name(name, batch_size, learning_rate, epoch):
-    """ 
-    Returns a path name for the model consisting of all the hyperparameter values.
-
-    Args:
-        config: Configuration object containing the hyperparameters
-    Returns:
-        path: A string with the hyperparameter name and value concatenated
-    """
-    path = "model_{0}_bs{1}_lr{2}_epoch{3}".format(name,
-                                                   batch_size
-                                                   ,
-                                                   learning_rate,
-                                                   epoch)
+    """Return a checkpoint filename without directory."""
+    path = "model_{0}_bs{1}_lr{2}_epoch{3}".format(
+        name,
+        batch_size,
+        learning_rate,
+        epoch,
+    )
     return path
 
 
 def normalize_label(labels):
-    """
-    Returns a normalized label given a tensor containing 2 possible values.
+    """Normalize binary labels to float 0/1.
 
-    Args:
-        labels: a 1D tensor containing two possible scalar values
-    Returns:
-        tensor: A tensor normalize to 0/1 value
+    Handles the case where a mini-batch contains only one class, avoiding
+    division by zero.
     """
     max_val = torch.max(labels)
     min_val = torch.min(labels)
-    norm_labels = (labels - min_val)//(max_val - min_val)
-    return norm_labels
+
+    if max_val == min_val:
+        normalized = torch.zeros_like(labels, dtype=torch.float32)
+        if max_val != 0:
+            normalized.fill_(1.0)
+        return normalized
+
+    normalized = (labels - min_val).float() / (max_val - min_val)
+    return normalized
 
 
 def evaluate(net, loader, criterion, use_cuda=False):
-    """ 
-    Evaluates the network on a dataset.
+    """Evaluate a binary model on a validation loader.
 
-    Args:
-        net: PyTorch neural network object
-        loader: PyTorch data loader for the validation set
-        criterion: The loss function
     Returns:
-        err: A scalar for the avg classification error over the validation set
-        loss: A scalar for the average loss function over the validation set
-     """
+        err: Average classification error over the loader.
+        loss: Average loss over the loader.
+    """
+    net.eval()
+
+    if use_cuda and torch.cuda.is_available():
+        net = net.cuda()
+
+    device = next(net.parameters()).device
+
     total_loss = 0.0
     total_err = 0.0
-    total_epoch = 0
-    for i, data in enumerate(loader, 0):
-        inputs, labels = data
-        # Convert labels to 0/1
-        labels = normalize_label(labels) 
-        if use_cuda and torch.cuda.is_available():
-            inputs= inputs.cuda()
-            labels = labels.cuda()
-        outputs = net(inputs)
-        loss = criterion(outputs, labels.float())
-        corr = (outputs > 0.0).squeeze().long() != labels
-        total_err += int(corr.sum())
-        total_loss += loss.item()
-        total_epoch += len(labels)
-    err = float(total_err) / total_epoch
-    loss = float(total_loss) / (i + 1)
+    total_samples = 0
+
+    with torch.no_grad():
+        for inputs, labels in loader:
+            labels = normalize_label(labels)
+            inputs = inputs.to(device)
+            labels = labels.to(device).float().view(-1)
+
+            outputs = net(inputs).view(-1)
+            loss = criterion(outputs, labels)
+
+            preds = (outputs > 0.0).long()
+            total_err += (preds != labels.long()).sum().item()
+            total_loss += loss.item() * labels.size(0)
+            total_samples += labels.size(0)
+
+    net.train()
+
+    if total_samples == 0:
+        return 0.0, 0.0
+
+    err = total_err / total_samples
+    loss = total_loss / total_samples
     return err, loss
 
 
 def plot_training_curve(path):
-    """ 
-    Plots the training curve for a model run, given the .csv files
-    containing the train/validation error/loss.
-
-    Args:
-        path: The base path of the csv files produced during training
-    """
+    """Plot training/validation error and loss curves from CSV files."""
     train_err = np.loadtxt("{}_train_err.csv".format(path))
     val_err = np.loadtxt("{}_val_err.csv".format(path))
     train_loss = np.loadtxt("{}_train_loss.csv".format(path))
     val_loss = np.loadtxt("{}_val_loss.csv".format(path))
-    plt.title("Train vs Validation Error")
+
     n = len(train_err)
-    plt.plot(range(1,n+1), train_err, label="Train")
-    plt.plot(range(1,n+1), val_err, label="Validation")
+
+    plt.title("Train vs Validation Error")
+    plt.plot(range(1, n + 1), train_err, label="Train")
+    plt.plot(range(1, n + 1), val_err, label="Validation")
     plt.xlabel("Epoch")
     plt.ylabel("Error")
-    plt.legend(loc='best')
+    plt.legend(loc="best")
     plt.show()
+
     plt.title("Train vs Validation Loss")
-    plt.plot(range(1,n+1), train_loss, label="Train")
-    plt.plot(range(1,n+1), val_loss, label="Validation")
-    plt.legend(loc='best')
+    plt.plot(range(1, n + 1), train_loss, label="Train")
+    plt.plot(range(1, n + 1), val_loss, label="Validation")
+    plt.legend(loc="best")
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
     plt.show()

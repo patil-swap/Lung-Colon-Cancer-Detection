@@ -5,9 +5,35 @@ import torch
 import torchvision.transforms as transforms
 
 
-def classify_image(img_path, CNN1, CNN2, CNN3, CNN4, use_cuda=False):
-    element = image_loader(img_path, use_cuda=use_cuda)
+def _get_transform():
+    """Return the standard preprocessing transform for model input."""
+    return transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+    ])
 
+
+def tensor_from_pil(pil_img, use_cuda=False):
+    """Convert a PIL image to a normalized model input tensor."""
+    image = pil_img.convert("RGB")
+    transform = _get_transform()
+    image = transform(image).float()
+    image = image.unsqueeze(0)
+
+    if use_cuda:
+        return image.cuda()
+    return image
+
+
+def image_loader(image_name, use_cuda=False):
+    """Load and preprocess an image path for the cascade models."""
+    image = PIL.Image.open(image_name)
+    return tensor_from_pil(image, use_cuda=use_cuda)
+
+
+def cascade_predict(element, CNN1, CNN2, CNN3, CNN4):
+    """Run the hierarchical cascade on a preprocessed input tensor."""
     out1 = torch.sigmoid(CNN1(element))
 
     if out1[0] > 0.5:
@@ -30,20 +56,16 @@ def classify_image(img_path, CNN1, CNN2, CNN3, CNN4, use_cuda=False):
     return res
 
 
-def image_loader(image_name, use_cuda=False):
-    """Load and preprocess an image for the cascade models."""
-    image = PIL.Image.open(image_name).convert("RGB")
-    transform = transforms.Compose([
-        transforms.Resize((224, 224)),
-        transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-    ])
-    image = transform(image).float()
-    image = image.unsqueeze(0)
+def classify_image(img_path, CNN1, CNN2, CNN3, CNN4, use_cuda=False):
+    """Classify a single image by its file path."""
+    element = image_loader(img_path, use_cuda=use_cuda)
+    return cascade_predict(element, CNN1, CNN2, CNN3, CNN4)
 
-    if use_cuda:
-        return image.cuda()
-    return image
+
+def classify_image_from_pil(pil_img, CNN1, CNN2, CNN3, CNN4, use_cuda=False):
+    """Classify a PIL image directly (e.g., from an uploaded file)."""
+    element = tensor_from_pil(pil_img, use_cuda=use_cuda)
+    return cascade_predict(element, CNN1, CNN2, CNN3, CNN4)
 
 
 def model_loader(net, model_path, use_cuda=False):

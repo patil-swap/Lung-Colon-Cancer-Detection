@@ -191,7 +191,7 @@ def main():
 
     model = HistopathDetector.HistopathDetector()
 
-    use_cuda = False #torch.cuda.is_available()
+    use_cuda = torch.cuda.is_available()
     print(f"Training on {'GPU' if use_cuda else 'CPU'}...")
 
     CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)

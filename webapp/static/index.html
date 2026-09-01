@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HistoScope AI</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Iosevka+Charon+Mono&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <div class="brand">
+                <img src="/static/logo.svg" alt="HistoScope Logo" class="logo">
+                <div>
+                    <h1>HISTOSCOPE <span class="accent">AI</span></h1>
+                    <p class="subtitle">Lung &amp; Colon Histopathology Classification</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="workspace">
+        <!-- Left Column: Controls -->
+        <section class="controls">
+            <div class="card upload-card">
+                <h2>Upload Histopathology Image</h2>
+                <div id="dropzone" class="dropzone">
+                    <div class="dropzone-icon">⬆️</div>
+                    <p class="dropzone-text">Drag &amp; drop a microscopy image here</p>
+                    <p class="dropzone-or">or</p>
+                    <label class="file-button">
+                        Choose Image
+                        <input type="file" id="file-input" accept="image/*" hidden>
+                    </label>
+                    <p id="file-name" class="file-name"></p>
+                </div>
+                <button id="run-analysis" class="primary-button" disabled>Run Analysis</button>
+            </div>
+
+            <div class="card reference-card">
+                <h2>Reference Samples</h2>
+                <button id="load-random" class="secondary-button">Show Random Samples</button>
+                <div id="random-grid" class="random-grid"></div>
+            </div>
+        </section>
+
+        <!-- Right Column: Preview & Results -->
+        <section class="results">
+            <div class="card preview-card" id="preview-card" hidden>
+                <h2>Image Preview</h2>
+                <div class="preview-container">
+                    <img id="preview-image" src="" alt="Selected microscopy image">
+                </div>
+                <div class="preview-meta">
+                    <span id="preview-filename"></span>
+                    <button id="remove-image" class="text-button">Remove</button>
+                </div>
+            </div>
+
+            <div class="card result-card" id="result-card" hidden>
+                <h2>Prediction</h2>
+                <div id="result-content">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <div class="card cascade-card" id="cascade-card" hidden>
+                <h2>AI Inference Cascade</h2>
+                <div id="cascade-stages" class="cascade-stages">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/static/script.js"></script>
+</body>
+
+</html>

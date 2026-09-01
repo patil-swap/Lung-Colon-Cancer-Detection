@@ -5,4 +5,6 @@ kaggle
 split-folders
 torchvision
 pillow
-torchsummary
+fastapi
+uvicorn[standard]
+python-multipart

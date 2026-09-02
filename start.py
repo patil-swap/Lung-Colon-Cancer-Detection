@@ -9,10 +9,10 @@ CHECKPOINT_DIR = os.path.join(BASE_DIR, "checkpoint_files")
 DEMO_DIR = os.path.join(BASE_DIR, "dataset", "demo")
 
 CHECKPOINT_PATHS = {
-    "CNN1": os.path.join(CHECKPOINT_DIR, "model_CNN1_LungColon_bs256_lr0.001_epoch14"),
-    "CNN2": os.path.join(CHECKPOINT_DIR, "model_CNN2_LungClassifier_bs150_lr0.01_epoch9"),
-    "CNN3": os.path.join(CHECKPOINT_DIR, "model_CNN3_ColonClassifier_bs256_lr0.001_epoch14"),
-    "CNN4": os.path.join(CHECKPOINT_DIR, "model_CNN4_LungMalignant_bs64_lr0.0065_epoch12"),
+    "CNN1": os.path.join(CHECKPOINT_DIR, "model_CNN1_LungColon_bs256_lr0.001_best"),
+    "CNN2": os.path.join(CHECKPOINT_DIR, "model_CNN2_LungClassifier_bs150_lr0.001_best"),
+    "CNN3": os.path.join(CHECKPOINT_DIR, "model_CNN3_ColonClassifier_bs256_lr0.001_best"),
+    "CNN4": os.path.join(CHECKPOINT_DIR, "model_CNN4_LungMalignant_bs64_lr0.001_best"),
 }
 
 DEMO_IMAGES = {

@@ -25,10 +25,10 @@ DATASET_ROOT = BASE_DIR / "dataset" / "lung_colon_image_set"
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 CASCADE_CHECKPOINTS = {
-    "cnn1": CHECKPOINT_DIR / "model_CNN1_LungColon_bs256_lr0.001_epoch14",
-    "cnn2": CHECKPOINT_DIR / "model_CNN2_LungClassifier_bs150_lr0.01_epoch9",
-    "cnn3": CHECKPOINT_DIR / "model_CNN3_ColonClassifier_bs256_lr0.001_epoch14",
-    "cnn4": CHECKPOINT_DIR / "model_CNN4_LungMalignant_bs64_lr0.0065_epoch12",
+    "cnn1": CHECKPOINT_DIR / "model_CNN1_LungColon_bs256_lr0.001_best",
+    "cnn2": CHECKPOINT_DIR / "model_CNN2_LungClassifier_bs150_lr0.001_best",
+    "cnn3": CHECKPOINT_DIR / "model_CNN3_ColonClassifier_bs256_lr0.001_best",
+    "cnn4": CHECKPOINT_DIR / "model_CNN4_LungMalignant_bs64_lr0.001_best",
 }
 
 DETECTOR_CHECKPOINT = CHECKPOINT_DIR / "model_HistopathDetector_bs64_lr0.001_best"

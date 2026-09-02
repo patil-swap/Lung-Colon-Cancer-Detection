@@ -24,7 +24,11 @@ content/
 *.log
 
 # Intermediate per-epoch model checkpoints
-checkpoint_files/
+checkpoint_files/*_epoch*
+
+# Keep only best checkpoints
+!checkpoint_files/
+!checkpoint_files/*_best
 
 # OS & IDE
 .DS_Store

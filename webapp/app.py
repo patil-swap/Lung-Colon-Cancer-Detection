@@ -1,5 +1,4 @@
 import io
-import os
 import random
 from pathlib import Path
 
@@ -22,6 +21,7 @@ from utilities import predict_funcs
 BASE_DIR = Path(__file__).resolve().parents[1]
 CHECKPOINT_DIR = BASE_DIR / "checkpoint_files"
 DATASET_ROOT = BASE_DIR / "dataset" / "lung_colon_image_set"
+DEMO_ROOT = BASE_DIR / "dataset" / "demo"
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 CASCADE_CHECKPOINTS = {
@@ -101,7 +101,13 @@ def image_from_dataset_path(dataset_path: str):
     try:
         candidate.relative_to(base_resolved)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid dataset image path.")
+        # Try demo folder
+        demo_resolved = DEMO_ROOT.resolve()
+        candidate = (DEMO_ROOT / dataset_path).resolve()
+        try:
+            candidate.relative_to(demo_resolved)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid dataset image path.")
 
     if not candidate.is_file():
         raise HTTPException(status_code=404, detail="Dataset image not found.")
@@ -132,28 +138,40 @@ def read_root():
 
 @app.get("/random")
 def random_images():
-    class_dirs = [
-        DATASET_ROOT / "colon_image_sets" / "colon_aca",
-        DATASET_ROOT / "colon_image_sets" / "colon_n",
-        DATASET_ROOT / "lung_image_sets" / "lung_aca",
-        DATASET_ROOT / "lung_image_sets" / "lung_n",
-        DATASET_ROOT / "lung_image_sets" / "lung_scc",
-    ]
+    # In production, the full dataset may not be included in the repo.
+    # Fall back to the small demo directory if the main dataset is absent.
+    if DATASET_ROOT.exists():
+        class_dirs = [
+            DATASET_ROOT / "colon_image_sets" / "colon_aca",
+            DATASET_ROOT / "colon_image_sets" / "colon_n",
+            DATASET_ROOT / "lung_image_sets" / "lung_aca",
+            DATASET_ROOT / "lung_image_sets" / "lung_n",
+            DATASET_ROOT / "lung_image_sets" / "lung_scc",
+        ]
+        base = DATASET_ROOT
+    elif DEMO_ROOT.exists():
+        demo_images = sorted(
+            [f for f in DEMO_ROOT.iterdir() if f.suffix.lower() in {".jpg", ".jpeg", ".png"}]
+        )
+        if not demo_images:
+            raise HTTPException(status_code=500, detail="No sample images available.")
+        selected = random.sample(demo_images, min(5, len(demo_images)))
+        return JSONResponse({
+            "images": [p.relative_to(BASE_DIR).as_posix() for p in selected]
+        })
+    else:
+        raise HTTPException(status_code=500, detail="No sample images available.")
 
-    selected = []
     extensions = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"}
-
+    selected = []
     for class_dir in class_dirs:
         if not class_dir.exists():
             raise HTTPException(status_code=500, detail="Dataset directory missing.")
-        files = [
-            f for f in class_dir.iterdir()
-            if f.is_file() and f.suffix.lower() in extensions
-        ]
+        files = [f for f in class_dir.iterdir() if f.is_file() and f.suffix.lower() in extensions]
         if not files:
             raise HTTPException(status_code=500, detail="No images found in class directory.")
         chosen = random.choice(files)
-        relative = chosen.relative_to(DATASET_ROOT).as_posix()
+        relative = chosen.relative_to(base).as_posix()
         selected.append(relative)
 
     return JSONResponse({"images": selected})
@@ -166,7 +184,13 @@ def serve_dataset_image(dataset_path: str):
     try:
         candidate.relative_to(base_resolved)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid dataset image path.")
+        # Try demo root
+        demo_base = DEMO_ROOT.resolve()
+        candidate = (DEMO_ROOT / dataset_path).resolve()
+        try:
+            candidate.relative_to(demo_base)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid dataset image path.")
 
     if not candidate.is_file():
         raise HTTPException(status_code=404, detail="Dataset image not found.")

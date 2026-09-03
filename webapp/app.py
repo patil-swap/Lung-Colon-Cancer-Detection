@@ -96,21 +96,27 @@ def image_from_upload(file: UploadFile):
 
 
 def image_from_dataset_path(dataset_path: str):
-    base_resolved = DATASET_ROOT.resolve()
-    candidate = (DATASET_ROOT / dataset_path).resolve()
+    # Try demo root first when path is only a filename or appears to be
+    # from the demo fallback. Then try the full dataset root.
+    demo_candidate = (DEMO_ROOT / dataset_path).resolve()
     try:
-        candidate.relative_to(base_resolved)
+        demo_candidate.relative_to(DEMO_ROOT.resolve())
+        demo_is_inside = True
     except ValueError:
-        # Try demo folder
-        demo_resolved = DEMO_ROOT.resolve()
-        candidate = (DEMO_ROOT / dataset_path).resolve()
+        demo_is_inside = False
+
+    if demo_is_inside and demo_candidate.is_file():
+        candidate = demo_candidate
+    else:
+        dataset_candidate = (DATASET_ROOT / dataset_path).resolve()
         try:
-            candidate.relative_to(demo_resolved)
+            dataset_candidate.relative_to(DATASET_ROOT.resolve())
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid dataset image path.")
 
-    if not candidate.is_file():
-        raise HTTPException(status_code=404, detail="Dataset image not found.")
+        if not dataset_candidate.is_file():
+            raise HTTPException(status_code=404, detail="Dataset image not found.")
+        candidate = dataset_candidate
 
     try:
         image = Image.open(candidate)
@@ -118,7 +124,6 @@ def image_from_dataset_path(dataset_path: str):
     except (UnidentifiedImageError, OSError):
         raise HTTPException(status_code=400, detail="Invalid image file.")
     return image
-
 
 app = FastAPI(title="HistoScope")
 
@@ -179,24 +184,27 @@ def random_images():
 
 @app.get("/dataset_image/{dataset_path:path}")
 def serve_dataset_image(dataset_path: str):
-    base_resolved = DATASET_ROOT.resolve()
-    candidate = (DATASET_ROOT / dataset_path).resolve()
+    # Try demo root first when path is a simple filename or demo-relative path.
+    demo_candidate = (DEMO_ROOT / dataset_path).resolve()
     try:
-        candidate.relative_to(base_resolved)
+        demo_candidate.relative_to(DEMO_ROOT.resolve())
+        demo_is_inside = True
     except ValueError:
-        # Try demo root
-        demo_base = DEMO_ROOT.resolve()
-        candidate = (DEMO_ROOT / dataset_path).resolve()
-        try:
-            candidate.relative_to(demo_base)
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid dataset image path.")
+        demo_is_inside = False
 
-    if not candidate.is_file():
+    if demo_is_inside and demo_candidate.is_file():
+        return FileResponse(str(demo_candidate))
+
+    dataset_candidate = (DATASET_ROOT / dataset_path).resolve()
+    try:
+        dataset_candidate.relative_to(DATASET_ROOT.resolve())
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid dataset image path.")
+
+    if not dataset_candidate.is_file():
         raise HTTPException(status_code=404, detail="Dataset image not found.")
 
-    return FileResponse(str(candidate))
-
+    return FileResponse(str(dataset_candidate))
 
 @app.post("/predict")
 async def predict(

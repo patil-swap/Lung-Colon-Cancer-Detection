@@ -157,7 +157,7 @@ def random_images():
             raise HTTPException(status_code=500, detail="No sample images available.")
         selected = random.sample(demo_images, min(5, len(demo_images)))
         return JSONResponse({
-            "images": [p.relative_to(BASE_DIR).as_posix() for p in selected]
+            "images": [p.name for p in selected]
         })
     else:
         raise HTTPException(status_code=500, detail="No sample images available.")
